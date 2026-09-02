@@ -15,11 +15,11 @@ def newton (f, df, x0, eps=1e-8, max_iter=200):
 
         xn = x - fx/dfx
 
-        # falta calcular erro aqui
+        e = xn - x
 
-        print(f"[\"k\": {k}, \"x\": {xn}, \"fx\": {fx}, \"erro\": erro]")   # retorna historico
+        print(f"[\"k\": {k}, \"x\": {xn}, \"fx\": {fx}, \"erro\": {e}]")   # retorna historico
 
-        if abs(xn) < eps or xn == x:
+        if abs(xn-x) < eps or abs(xn) < eps:
             return xn                                                       # retorna raiz
 
         x = xn
