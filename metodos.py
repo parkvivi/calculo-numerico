@@ -25,7 +25,7 @@ def newton (f, df, x0, eps=1e-8, max_iter=200):
 
         print(f"[\"k\": {k}, \"x\": {xn}, \"fx\": {fx}, \"erro\": {e}]")   # retorna historico
 
-        if abs(xn-x) < eps or abs(xn) < eps:
+        if abs(e) < eps or abs(xn) < eps:
             print(f"\"f\" chamada {cont_f} vezes :: \"df\" chamada {cont_df} vezes")
             return xn                                                       # retorna raiz
 
