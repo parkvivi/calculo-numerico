@@ -1,41 +1,35 @@
 def bisseccao (f, a, b, eps=1e-8, max_iter=200):
     # Retorna (raiz, historico)
+    pass
 
 def newton (f, df, x0, eps=1e-8, max_iter=200):
 
     x = x0
 
-    cont_f = 0
-    cont_df = 0
+    historico = []
 
-    for k in range(max_iter):
+    for k in range(1, max_iter + 1):
 
         fx = f(x)
-        cont_f += 1
-
         dfx = df(x)
-        cont_df += 1
 
         if dfx == 0:
-            raise Exception(f"ERRO :: iteração {k} :: dfx assume 0")
+            raise ValueError(f"iteração {k} :: dfx assume 0")
 
         xn = x - fx/dfx
 
-        e = xn - x
+        e = abs(xn - x)
 
-        print(f"[\"k\": {k}, \"x\": {xn}, \"fx\": {fx}, \"erro\": {e}]")   # retorna historico
+        historico.append({"k": k, "x": x, "fx": fx, "erro": e})
 
-        if abs(e) < eps or abs(xn) < eps:
-            print(f"\"f\" chamada {cont_f} vezes :: \"df\" chamada {cont_df} vezes")
-            return xn                                                       # retorna raiz
+        if e < eps or abs(fx) < eps:
+            return xn, historico
 
         x = xn
 
-    print(f"não houve convergência :: x={x} foi o melhor valor encontrado")
-    print(f"\"f\" chamada {cont_f} vezes :: \"df\" chamada {cont_df} vezes")
-    return x
+    print("Aviso: Não houve convergência.")
+    return x, historico
 
 def secante (f, x0, x1, eps=1e-8, max_iter=200):
     # Retorna (raiz, historico)
-
-    # teste aaaaaaaaaaaaaaa
+    pass
