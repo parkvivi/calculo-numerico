@@ -67,12 +67,38 @@ def newton (f, df, x0, eps=1e-8, max_iter=200):
 
 # MÉTODO DA SECANTE
 def secante (f, x0, x1, eps=1e-8, max_iter=200):
-    # Retorna (raiz, historico)
     """
-    MP
+    Determina a raiz de f(x) = 0 pelo Método da Secante.
+    Retorna uma tupla: (raiz, historico)
     """
-    pass
+    historico = []
+    
+    fx0 = f(x0)
+    fx1 = f(x1)
 
+    for k in range(1, max_iter + 1):
+        den = fx1 - fx0
+        
+        if den == 0:
+            raise ValueError(f"iteração {k} :: Denominador nulo na secante.")
+
+        x2 = x1 - fx1 * (x1 - x0) / den
+        fx2 = f(x2)
+        
+        erro = abs(x2 - x1)
+
+        historico.append({"k": k, "x": x2, "fx": fx2, "erro": erro})
+
+
+        if erro < eps or abs(fx2) < eps:
+            return x2, historico
+
+        # Atualizando os valores para a próxima iteração
+        x0, x1 = x1, x2
+        fx0, fx1 = fx1, fx2
+
+    print("Aviso: Número máximo de iterações atingido. Não houve convergência na Secante.")
+    return x1, historico
 
 if __name__ == "__main__":
   
