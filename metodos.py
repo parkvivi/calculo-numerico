@@ -1,61 +1,109 @@
-    
-def bisseccao (f, a, b, eps=1e-8, max_iter=200):
+
+def contador(f):
     """
-    Determina a raiz de f(x) = 0 pelo Método da Bissecção.
+    Decorator auxiliar para contar quantas vezes uma funcao foi chamada.
+    """
+    def wrapper(x):
+        wrapper.n += 1
+        return f(x)
+    wrapper.n = 0
+    return wrapper
+
+
+def bisseccao(f, a, b, eps=1e-8, max_iter=200):
+    """
+    Determina a raiz de f(x) = 0 pelo Metodo da Bisseccao.
     Retorna uma tupla: (raiz, historico)
     """
-    if (f(a) > 0) == (f(b) > 0) >= 0:
+    fa, fb = f(a), f(b)
 
-        raise ValueError ("f(a) e f(b) devem ter sinais opostos")
+    if (fa > 0) == (fb > 0):
+        raise ValueError("f(a) e f(b) devem ter sinais opostos (f(a)*f(b) < 0).")
 
     historico = []
-    x_ant = a
 
     for k in range(1, max_iter + 1):
+        # Erro teoricamente correto da bisseccao: raio do intervalo ATUAL,
+        # calculado ANTES de atualizar a ou b nesta iteracao.
+        erro = abs(b - a) / 2.0
         x = (a + b) / 2.0
         fx = f(x)
 
-        erro = abs(x - x_ant)
+        convergiu = (erro < eps) or (abs(fx) < eps)
+        historico.append({"k": k, "x": float(x), "fx": float(fx), "erro": float(erro), "convergiu": convergiu})
 
-        historico.append({"k": k, "x": x, "fx": fx, "erro": erro})
-
-        if erro < eps or abs(fx) < eps:
+        if convergiu:
             return x, historico
 
-        if (f(a) > 0) != (fx > 0):
+        if (fa > 0) != (fx > 0):
             b = x
+            fb = fx
         else:
             a = x
-            
-        x_ant = x
+            fa = fx
 
-    print("Aviso: Número máximo de iterações atingido.")
+    print("Aviso: max_iter atingido na Bisseccao sem convergencia completa.")
     return x, historico
-    # Retorna (raiz, historico)
 
-if __name__ == "__main__":
-  
-    def f_padrao(x):
-        return x**3 - 9*x + 3
 
-    print("=== EXECUTANDO TESTE DAS REGRAS DO TRABALHO ===")
-    try:
-        raiz, hist = bisseccao(f_padrao, a=0, b=1, eps=1e-8)
-        
-        print(f"Raiz obtida: {raiz:.8f}")
-        print(f"Total de iterações (k): {len(hist)}")
-        print("\nEstrutura do Dicionário (Última iteração):")
-        print(hist[-1])
-        
-    except ValueError as e:
-        print(f"Erro capturado na validação: {e}")
+def newton(f, df, x0, eps=1e-8, max_iter=200):
+    """
+    Determina a raiz de f(x) = 0 pelo Metodo de Newton-Raphson.
+    Retorna uma tupla: (raiz, historico)
+    """
+    historico = []
+    x = x0
+    fx = f(x)
 
-def newton (f, df, x0, eps=1e-8, max_iter=200):
-    # Retorna (raiz, historico)
-    """ VIVI """
-    pass
+    for k in range(1, max_iter + 1):
+        dfx = df(x)
 
-def secante (f, x0, x1, eps=1e-8, max_iter=200):
-    # Retorna (raiz, historico)
-    """ MAPA """
-    pass
+        if dfx == 0:
+            raise ValueError(f"Iteracao {k}: derivada nula em x = {x}.")
+
+        xn = x - fx / dfx
+        fxn = f(xn)
+        erro = abs(xn - x)
+
+        convergiu = (erro < eps) or (abs(fxn) < eps)
+        historico.append({"k": k, "x": float(xn), "fx": float(fxn), "erro": float(erro), "convergiu": convergiu})
+
+        if convergiu:
+            return xn, historico
+
+        x, fx = xn, fxn
+
+    print("Aviso: max_iter atingido no Newton sem convergencia completa.")
+    return x, historico
+
+
+def secante(f, x0, x1, eps=1e-8, max_iter=200):
+    """
+    Determina a raiz de f(x) = 0 pelo Metodo da Secante.
+    Retorna uma tupla: (raiz, historico)
+    """
+    historico = []
+    fx0 = f(x0)
+    fx1 = f(x1)
+
+    for k in range(1, max_iter + 1):
+        den = fx1 - fx0
+
+        if den == 0:
+            raise ValueError(f"Iteracao {k}: denominador nulo na Secante.")
+
+        x2 = x1 - fx1 * (x1 - x0) / den
+        fx2 = f(x2)
+        erro = abs(x2 - x1)
+
+        convergiu = (erro < eps) or (abs(fx2) < eps)
+        historico.append({"k": k, "x": float(x2), "fx": float(fx2), "erro": float(erro), "convergiu": convergiu})
+
+        if convergiu:
+            return x2, historico
+
+        x0, x1 = x1, x2
+        fx0, fx1 = fx1, fx2
+
+    print("Aviso: max_iter atingido na Secante sem convergencia completa.")
+    return x1, historico
