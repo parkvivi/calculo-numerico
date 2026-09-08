@@ -60,9 +60,7 @@ def verificar(nome, f, raiz, unidade_x="", unidade_f="", tol=None):
             print("Resultado: Revisar precisão da raiz.")
 
 
-# ==============================================================================
-# PROBLEMA A: RESERVATÓRIO ESFÉRICO (CORRIGIDO)
-# ==============================================================================
+# PROBLEMA A: RESERVATÓRIO ESFÉRICO
 def problema_A():
     print("\n" + "=" * 70)
     print("PROBLEMA A: RESERVATÓRIO ESFÉRICO")
@@ -162,9 +160,7 @@ def problema_A():
     plt.show()
 
 
-# ==============================================================================
-# PROBLEMA B: PERDA DE CARGA EM TUBULAÇÃO (CORRIGIDO)
-# ==============================================================================
+# PROBLEMA B: PERDA DE CARGA EM TUBULAÇÃO
 def problema_B():
     print("\n" + "=" * 70)
     print("PROBLEMA B: PERDA DE CARGA EM TUBULAÇÃO")
@@ -258,9 +254,8 @@ def problema_B():
         f" {fmt_sig(hf_aprox)} m (Erro: {erro_pct:.2f}%)"
     )
 
-# ==============================================================================
+
 # PROBLEMA C: EQUAÇÃO DE VAN DER WAALS
-# ==============================================================================
 def problema_C():
     print("\n" + "=" * 70)
     print("PROBLEMA C: EQUAÇÃO DE VAN DER WAALS")
@@ -330,9 +325,7 @@ def problema_C():
     plt.show()
 
 
-# ==============================================================================
 # PROBLEMA D: TAXA INTERNA DE RETORNO (TIR)
-# ==============================================================================
 def problema_D():
     print("\n" + "=" * 70)
     print("PROBLEMA D: TAXA INTERNA DE RETORNO (TIR)")
@@ -443,9 +436,7 @@ def problema_D():
     )
 
 
-# ==============================================================================
 # PROBLEMA E: EQUAÇÃO DE KEPLER
-# ==============================================================================
 def problema_E():
     print("\n" + "=" * 70)
     print("PROBLEMA E: EQUAÇÃO DE KEPLER")
@@ -518,9 +509,7 @@ def problema_E():
     )
 
 
-# ==============================================================================
 # PROBLEMA F (BÔNUS): DEFLEXÃO DE VIGA
-# ==============================================================================
 def problema_F():
     print("\n" + "=" * 70)
     print("PROBLEMA F (BÔNUS): DEFLEXÃO DE VIGA")
