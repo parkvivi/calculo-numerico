@@ -1,6 +1,7 @@
 # EXERCÍCIO 3 - MP
 
-import numpy as np  
+import numpy as np
+import matplotlib.pyplot as plt
 
 def newton_sistemas(F, JF, x0, TOL=1e-5, max_iter=200):
     x = np.copy(x0).astype('double')
@@ -54,3 +55,41 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
+    # ESBOÇO DO EXERCÍCIO 3 (E 5.1.3)
+# ==========================================
+
+# 1. Definindo os valores de X
+# A elipse só existe no intervalo de x entre -1 e 1
+x = np.linspace(-1.5, 1.5, 400)
+x_elipse = np.linspace(-1, 1, 400)
+
+# 2. Equação da Parábola: y = x^2 + 1
+y_parabola = x**2 + 1
+
+# 3. Equação da Elipse: x^2 + y^2/4 = 1  =>  y = +- 2*sqrt(1 - x^2)
+y_elipse_sup = 2 * np.sqrt(1 - x_elipse**2) # Parte de cima da elipse
+y_elipse_inf = -2 * np.sqrt(1 - x_elipse**2) # Parte de baixo da elipse
+
+# 4. Configurando o gráfico
+plt.figure(figsize=(8, 6))
+
+# Plotando as curvas
+plt.plot(x, y_parabola, label='Parábola: $y = x^2 + 1$', color='blue')
+plt.plot(x_elipse, y_elipse_sup, label='Elipse: $x^2 + y^2/4 = 1$', color='orange')
+plt.plot(x_elipse, y_elipse_inf, color='orange') # Completando a elipse
+
+# Marcando os pontos de intersecção aproximados (encontrados pelo Método de Newton)
+# Raízes exatas são x = +- 0.68125, y = 1.4641
+plt.scatter([0.68125, -0.68125], [1.4641, 1.4641], color='red', zorder=5, label='Pontos de Intersecção')
+
+# Ajustes visuais
+plt.title('Esboço do Exercício 3: Intersecção entre Parábola e Elipse')
+plt.axhline(0, color='black',linewidth=1)
+plt.axvline(0, color='black',linewidth=1)
+plt.grid(color='gray', linestyle='--', linewidth=0.5)
+plt.legend()
+plt.axis('equal') # Mantém a proporção real das curvas
+
+# Mostrando o gráfico na tela
+plt.show()
