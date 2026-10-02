@@ -12,7 +12,8 @@ Este repositório contém os trabalhos desenvolvidos na disciplina de Cálculo N
 ```
 calculo-numerico/
 ├── trabalhos-computacionais/
-|       └── tc-1/                    # trabalho computacional 1
+|       ├── tc-1/                   # trabalho computacional 1
+|       └── tc-2/                   # trabalho computacional 2
 ├── .gitignore 
 └── README.md                       # documentação do repositório
 ```
