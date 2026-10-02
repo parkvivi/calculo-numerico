@@ -47,7 +47,7 @@ def letra_a():
  
     x0 = np.array([0.10, 0.10, -0.05, 70.0])
     print("\nJ(x0) analitica:")
-    print(J(x0, K))
+    print(J(x0, K)) 
     dif = np.abs(J(x0, K) - J_diferencas_finitas(x0, K)).max()
     print(f"\nmax|J - J_fd| = {dif:.2e}")
     return K  
@@ -168,16 +168,102 @@ def letra_c(K):
 
 # Questão 1 - letra d)
 
+def letra_d(x_star):
+    print("\n=== Letra (d) ===")
+    Q1, Q2, Q3, H = x_star
+    
+    print(f"Q3 ={Q3:.6f} m³/s")
+    
+    Q = np.array([Q1, Q2, Q3])
+    area = np.pi * (D**2) / 4.0
+    v = Q / area
+    
+    print("2. Velocidades nas adutoras:")
+    for i in range(3):
+        print(f"   Adutora {i+1}: v{i+1} = {v[i]:8.4f} m/s  (módulo: {abs(v[i]):.4f} m/s)")
+
 # Questão 1 - letra e)
 
+def F_demanda(x_e, K):
+    Q1, Q2, H, q = x_e
+    r = np.empty(4)
+    r[0] = K[0] * Q1 * np.abs(Q1) + H - Z[0]
+    r[1] = K[1] * Q2 * np.abs(Q2) + H - Z[1]
+    r[2] = H - Z[2]
+    r[3] = Q1 + Q2 - q
+    return r
+
+def J_demanda(x_e, K):
+    Q1, Q2, H, q = x_e
+    Jm = np.zeros((4, 4))
+    Jm[0, 0] = 2 * K[0] * np.abs(Q1)
+    Jm[0, 2] = 1.0
+    Jm[1, 1] = 2 * K[1] * np.abs(Q2)
+    Jm[1, 2] = 1.0
+    Jm[2, 2] = 1.0
+    Jm[3, 0] = 1.0
+    Jm[3, 1] = 1.0
+    Jm[3, 3] = -1.0
+    return Jm
+
+def letra_e(K):
+    print("\n=== Letra (e) ===")
+    x0_e = np.array([0.10, 0.10, 70.0, 0.20])
+    hist = newton(lambda x: F_demanda(x, K), lambda x: J_demanda(x, K), x0_e)
+    x_e_star = hist[-1]
+    
+    Q1_e, Q2_e, H_e, q_star = x_e_star
+    print("Solução do sistema não-linear para Q3 = 0:")
+    print(f"  Q1 = {Q1_e:.6f} m³/s")
+    print(f"  Q2 = {Q2_e:.6f} m³/s")
+    print(f"  Q3 = 0.000000 m³/s (fixado)")
+    print(f"  H  = {H_e:.4f} m")
+    print(f"  q* = {q_star:.6f} m³/s  ({q_star * 1000:.2f} L/s)")
+    return q_star
+
 # Questão 1 - letra f)
+
+def letra_f(K_original, x_star_orig, q_star_orig):
+    print("\n=== Letra (f) ===")
+    
+    f_novo = F_ATRITO.copy()
+    f_novo[0] = 0.030
+    K_novo = calcular_K(f=f_novo)
+
+    
+    x0 = np.array([0.10, 0.10, -0.05, 70.0])
+    hist_novo = newton(lambda x: F(x, K_novo), lambda x: J(x, K_novo), x0)
+    x_star_novo = hist_novo[-1]
+
+    
+    x0_e = np.array([0.10, 0.10, 70.0, 0.20])
+    hist_e_novo = newton(lambda x: F_demanda(x, K_novo), lambda x: J_demanda(x, K_novo), x0_e)
+    q_star_novo = hist_e_novo[-1][3]
+    
+    print("Resultados com f1 = 0,030:")
+    print(f"  Q1_novo = {x_star_novo[0]:.6f} m³/s")
+    print(f"  Q2_novo = {x_star_novo[1]:.6f} m³/s")
+    print(f"  Q3_novo = {x_star_novo[2]:.6f} m³/s")
+    print(f"  H_novo  = {x_star_novo[3]:.4f} m")
+    print(f"  q*_novo = {q_star_novo:.6f} m³/s")
+
+    var_Q1 = abs(x_star_novo[0] - x_star_orig[0]) / abs(x_star_orig[0]) * 100
+    var_H = abs(x_star_novo[3] - x_star_orig[3]) / abs(x_star_orig[3]) * 100
+    var_q_star = abs(q_star_novo - q_star_orig) / abs(q_star_orig) * 100
+    
+    print("\nAnálise de Sensibilidade (Variações Relativas):")
+    print(f"  |ΔQ1| / Q1 = {var_Q1:.2f}%")
+    print(f"  |ΔH|  / H  = {var_H:.2f}%")
+    print(f"  |Δq*| / q* = {var_q_star:.2f}%")
 
 #Função Main!!!
 def main():
     K = letra_a()
-    letra_b(K)
+    x_star = letra_b(K)
     letra_c(K)
- 
- 
+    letra_d(x_star)
+    q_star = letra_e(K)
+    letra_f(K, x_star, q_star)
+
 if __name__ == "__main__":
     main()
