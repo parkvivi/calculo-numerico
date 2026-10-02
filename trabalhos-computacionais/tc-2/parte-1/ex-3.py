@@ -37,8 +37,39 @@ def JF_ex3(X):
         [2*x, y/2]
     ])
 
+def esboco():
+    x = np.linspace(-1.5, 1.5, 400)
+    x_elipse = np.linspace(-1, 1, 400)
+
+    # Equação da Parábola (y = x^2 + 1)
+    y_parabola = x**2 + 1
+
+    # Equação da Elipse (x^2 + y^2/4 = 1  =>  y = +- 2*sqrt(1 - x^2)
+    y_elipse_sup = 2 * np.sqrt(1 - x_elipse**2) # Parte de cima da elipse
+    y_elipse_inf = -2 * np.sqrt(1 - x_elipse**2) # Parte de baixo da elipse
+
+    plt.figure(figsize=(8, 6))
+
+    plt.plot(x, y_parabola, label='Parábola: $y = x^2 + 1$', color='blue')
+    plt.plot(x_elipse, y_elipse_sup, label='Elipse: $x^2 + y^2/4 = 1$', color='orange')
+    plt.plot(x_elipse, y_elipse_inf, color='orange') # Completando a elipse
+
+    plt.scatter([0.68125, -0.68125], [1.4641, 1.4641], color='red', zorder=5, label='Pontos de Intersecção')
+
+    plt.title('Esboço do Exercício 3: Intersecção entre Parábola e Elipse')
+    plt.axhline(0, color='black',linewidth=1)
+    plt.axvline(0, color='black',linewidth=1)
+    plt.grid(color='gray', linestyle='--', linewidth=0.5)
+    plt.legend()
+    plt.axis('equal')
+
+    plt.show()
+
 def main():
     print("===== EXERCÍCIO 3: PARÁBOLA E ELIPSE =====")
+    # Esboço das curvas
+    esboco()
+
     # Ponto no Primeiro Quadrante
     x0_q1 = np.array([0.7, 1.5])
     raiz_q1, hist_q1 = newton_sistemas(F_ex3, JF_ex3, x0_q1, TOL=1e-5)
@@ -55,41 +86,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
-    # ESBOÇO DO EXERCÍCIO 3 (E 5.1.3)
-# ==========================================
-
-# 1. Definindo os valores de X
-# A elipse só existe no intervalo de x entre -1 e 1
-x = np.linspace(-1.5, 1.5, 400)
-x_elipse = np.linspace(-1, 1, 400)
-
-# 2. Equação da Parábola: y = x^2 + 1
-y_parabola = x**2 + 1
-
-# 3. Equação da Elipse: x^2 + y^2/4 = 1  =>  y = +- 2*sqrt(1 - x^2)
-y_elipse_sup = 2 * np.sqrt(1 - x_elipse**2) # Parte de cima da elipse
-y_elipse_inf = -2 * np.sqrt(1 - x_elipse**2) # Parte de baixo da elipse
-
-# 4. Configurando o gráfico
-plt.figure(figsize=(8, 6))
-
-# Plotando as curvas
-plt.plot(x, y_parabola, label='Parábola: $y = x^2 + 1$', color='blue')
-plt.plot(x_elipse, y_elipse_sup, label='Elipse: $x^2 + y^2/4 = 1$', color='orange')
-plt.plot(x_elipse, y_elipse_inf, color='orange') # Completando a elipse
-
-# Marcando os pontos de intersecção aproximados (encontrados pelo Método de Newton)
-# Raízes exatas são x = +- 0.68125, y = 1.4641
-plt.scatter([0.68125, -0.68125], [1.4641, 1.4641], color='red', zorder=5, label='Pontos de Intersecção')
-
-# Ajustes visuais
-plt.title('Esboço do Exercício 3: Intersecção entre Parábola e Elipse')
-plt.axhline(0, color='black',linewidth=1)
-plt.axvline(0, color='black',linewidth=1)
-plt.grid(color='gray', linestyle='--', linewidth=0.5)
-plt.legend()
-plt.axis('equal') # Mantém a proporção real das curvas
-
-# Mostrando o gráfico na tela
-plt.show()

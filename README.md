@@ -14,6 +14,8 @@ calculo-numerico/
 ├── trabalhos-computacionais/
 |       ├── tc-1/                   # trabalho computacional 1
 |       └── tc-2/                   # trabalho computacional 2
+|           ├── parte-1/                # parte 1
+|           └── parte-2/                # parte 2
 ├── .gitignore 
 └── README.md                       # documentação do repositório
 ```
