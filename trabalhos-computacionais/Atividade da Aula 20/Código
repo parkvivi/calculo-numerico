@@ -1,0 +1,223 @@
+import io
+import numpy as np
+import matplotlib.pyplot as plt
+
+# =====================================================================
+                            # Dados da TABELA
+# =====================================================================
+DADOS = """ano,co2_ppm
+1959,315.98
+1960,316.91
+1961,317.64
+1962,318.45
+1963,318.99
+1964,319.62
+1965,320.04
+1966,321.37
+1967,322.18
+1968,323.05
+1969,324.62
+1970,325.68
+1971,326.32
+1972,327.46
+1973,329.68
+1974,330.19
+1975,331.13
+1976,332.03
+1977,333.84
+1978,335.41
+1979,336.84
+1980,338.76
+1981,340.12
+1982,341.48
+1983,343.15
+1984,344.87
+1985,346.35
+1986,347.61
+1987,349.31
+1988,351.69
+1989,353.20
+1990,354.45
+1991,355.70
+1992,356.54
+1993,357.21
+1994,358.96
+1995,360.97
+1996,362.74
+1997,363.88
+1998,366.84
+1999,368.54
+2000,369.71
+2001,371.32
+2002,373.45
+2003,375.98
+2004,377.70
+2005,379.98
+2006,382.09
+2007,384.02
+2008,385.83
+2009,387.64
+2010,390.10
+2011,391.85
+2012,394.06
+2013,396.74
+2014,398.81
+2015,401.01
+2016,404.41
+2017,406.76
+2018,408.72
+2019,411.65
+2020,414.21
+2021,416.41
+2022,418.53
+2023,421.08
+2024,424.61
+2025,427.35
+"""
+
+
+def carregar_dados():
+    """Devolve (ano, co2): vetores float de 1959 a 2025."""
+    d = np.loadtxt(io.StringIO(DADOS), delimiter=",", skiprows=1)
+    return d[:, 0], d[:, 1]
+
+
+ano, co2 = carregar_dados()   # compartilhado: ninguém deve reatribuir estes nomes
+
+
+# =====================================================================
+# 6. SEÇÃO 6 — Um cuidado numérico   (P5.1 e P5.2)
+# =====================================================================
+def s6_ajusta(x, y, grau):
+    """Ajuste por equações normais. Devolve (cond(A), S)."""
+    X = np.vander(x, grau + 1, increasing=True)   # X[i, j] = x_i ** j
+    A = X.T @ X
+    b = X.T @ y
+    c = np.linalg.solve(A, b)
+    S = np.sum((y - X @ c) ** 2)
+    return np.linalg.cond(A), S
+
+
+def s6_S_ref(x, y, grau):
+    """S de referência com método estável (lstsq, não forma XᵀX)."""
+    X = np.vander(x, grau + 1, increasing=True)
+    c = np.linalg.lstsq(X, y, rcond=None)[0]
+    return np.sum((y - X @ c) ** 2)
+
+
+def s6_fmt_cond(c):
+    """Formata cond(A). Acima de 1/eps os dígitos não têm significado
+    (dependem do BLAS/CPU), então mostra só a ordem de grandeza."""
+    limite = 1 / np.finfo(float).eps          # ~4.5e15
+    if c > limite:
+        return "> 1e15 *"                     # igual em qualquer máquina
+    return f"{c:.3e}"
+
+
+def s6_executa(ano, co2, graus=(1, 2, 3, 4)):
+    """P5.1: tabela com e sem deslocamento.  P5.2: primeiro grau em que S diverge."""
+    t = ano - 1959
+    print("P5.1 — equações normais com `ano` e com `t = ano - 1959`")
+    print("grau | cond(ano)    S(ano)      | cond(t)      S(t)        | S lstsq(t)")
+    primeiro_diverge = None
+    for n in graus:
+        ca, Sa = s6_ajusta(ano, co2, n)
+        ct, St = s6_ajusta(t, co2, n)
+        Sr = s6_S_ref(t, co2, n)
+        print(f"{n:4d} | {s6_fmt_cond(ca):<10s}  {Sa:11.6f} | "
+              f"{s6_fmt_cond(ct):<10s}  {St:11.6f} | {Sr:11.6f}")
+        if primeiro_diverge is None and not np.isclose(Sa, St, rtol=1e-6, atol=0):
+            primeiro_diverge = n
+    print("* cond(A) > 1/eps ≈ 4.5e15: só a ordem de grandeza tem significado "
+          "(o valor exato varia de máquina para máquina).")
+
+    print()
+    print("P5.2 — primeiro grau em que S(ano) e S(t) deixam de coincidir:",
+          primeiro_diverge)
+    print("       Está errado o S de `ano`: o S mínimo é o menor possível e "
+          "bate com lstsq(t).")
+
+
+def s6_p52(ano, co2, graus=(1, 2, 3, 4)):
+    """Resposta da P5.2. Recalcula tudo sozinha (não depende de s6_executa)."""
+    t = ano - 1959
+    ordem = lambda x: f"10^{int(np.floor(np.log10(x)))}"
+    res = {}
+    for n in graus:
+        ca, Sa = s6_ajusta(ano, co2, n)
+        ct, St = s6_ajusta(t, co2, n)
+        res[n] = (ca, Sa, ct, St, s6_S_ref(t, co2, n))
+    primeiro = next((n for n in graus
+                     if not np.isclose(res[n][1], res[n][3], rtol=1e-6, atol=0)), None)
+
+    print("=" * 72)
+    print("RESPOSTA P5.2")
+    print("=" * 72)
+    if primeiro is None:
+        print("Os S coincidiram em todos os graus testados; aumente `graus`.")
+        return
+    g1, gu = graus[0], graus[-1]
+    iguais = [n for n in graus if n < primeiro]
+    if not iguais:
+        l_iguais = "(nenhum)"
+    elif len(iguais) == 1:
+        l_iguais = str(iguais[0])
+    else:
+        l_iguais = ", ".join(map(str, iguais[:-1])) + " e " + str(iguais[-1])
+    limite = 1 / np.finfo(float).eps
+    acima = [n for n in graus if res[n][0] > limite]
+    if acima:
+        c_ano = (f"{s6_fmt_cond(res[g1][0])} no grau {g1} e ultrapassa 1/eps ~ 4.5e15\n"
+                 f"   (eps = precisão de máquina em double) a partir do grau {acima[0]}")
+    else:
+        c_ano = f"{s6_fmt_cond(res[g1][0])} no grau {g1} e {s6_fmt_cond(res[gu][0])} no grau {gu}"
+
+    print(f"""
+Os valores de S obtidos com `ano` e com `t = ano - 1959` coincidem nos graus
+{l_iguais} e deixam de coincidir a partir do GRAU {primeiro}:
+  grau {primeiro}: S(ano) = {res[primeiro][1]:.6f}  contra  S(t) = {res[primeiro][3]:.6f}
+  grau {gu}: S(ano) = {res[gu][1]:.6f}  contra  S(t) = {res[gu][3]:.6f}
+
+O valor incorreto é o obtido com a variável `ano`. Sabemos disso porque:
+
+1) Trocar `ano` por `t` só reescreve o mesmo polinômio com outros coeficientes,
+   então o S mínimo deveria ser igual nas duas versões. Além disso, o mínimo é
+   o menor valor que S pode assumir para aquele grau: coeficientes imprecisos
+   dão S maior ou igual a ele. Logo, entre dois valores diferentes, o menor é o
+   confiável (no grau {gu}, S(ano) = {res[gu][1]:.2f} > S(t) = {res[gu][3]:.2f}).
+
+2) Com um método estável (np.linalg.lstsq, que não forma X^T X) obtivemos
+   S = {res[primeiro][4]:.6f} no grau {primeiro} e S = {res[gu][4]:.6f} no grau {gu}, iguais aos obtidos
+   com `t`.
+
+3) O número de condição explica a causa. Com `ano`, cond(A) é {c_ano}.
+   Nessa situação a matriz é praticamente singular para o computador e a
+   solução das equações normais perde os dígitos significativos. Com `t`,
+   cond(A) é bem menor ({ordem(res[g1][2])} no grau {g1}, {ordem(res[primeiro][2])} no grau {primeiro}) e o resultado é confiável.
+
+Observação: cond(A) alto indica que o resultado PODE estar errado, não que
+esteja. Nos graus {l_iguais} o S ainda coincidiu com o correto; o erro só ficou
+visível no S a partir do grau {primeiro}. Acima de 1/eps os dígitos exatos de cond(A)
+também não são confiáveis (variam entre máquinas); vale só a ordem de grandeza.
+""")
+
+
+# (MP)
+# ... cole aqui ...
+# (MP)
+
+
+# (VIVI)
+# ... cole aqui ...
+# (VIVI)
+
+
+# Função principal
+if __name__ == "__main__":
+    print(len(ano), "anos, de", int(ano[0]), "a", int(ano[-1]), "\n")
+
+    s6_executa(ano, co2)
+    s6_p52(ano, co2)      
+
+    #Parte MP
+    #Parte VIVI
