@@ -128,14 +128,7 @@ def s6_executa(ano, co2, graus=(1, 2, 3, 4)):
               f"{s6_fmt_cond(ct):<10s}  {St:11.6f} | {Sr:11.6f}")
         if primeiro_diverge is None and not np.isclose(Sa, St, rtol=1e-6, atol=0):
             primeiro_diverge = n
-    print("* cond(A) > 1/eps ≈ 4.5e15: só a ordem de grandeza tem significado "
-          "(o valor exato varia de máquina para máquina).")
-
-    print()
-    print("P5.2 — primeiro grau em que S(ano) e S(t) deixam de coincidir:",
-          primeiro_diverge)
-    print("       Está errado o S de `ano`: o S mínimo é o menor possível e "
-          "bate com lstsq(t).")
+    print("* cond(A) > 1/eps ≈ 4.5e15")
 
 
 def s6_p52(ano, co2, graus=(1, 2, 3, 4)):
@@ -172,52 +165,41 @@ def s6_p52(ano, co2, graus=(1, 2, 3, 4)):
     else:
         c_ano = f"{s6_fmt_cond(res[g1][0])} no grau {g1} e {s6_fmt_cond(res[gu][0])} no grau {gu}"
 
-    print(f"""
-Os valores de S obtidos com `ano` e com `t = ano - 1959` coincidem nos graus
-{l_iguais} e deixam de coincidir a partir do GRAU {primeiro}:
-  grau {primeiro}: S(ano) = {res[primeiro][1]:.6f}  contra  S(t) = {res[primeiro][3]:.6f}
-  grau {gu}: S(ano) = {res[gu][1]:.6f}  contra  S(t) = {res[gu][3]:.6f}
 
-O valor incorreto é o obtido com a variável `ano`. Sabemos disso porque:
-
-1) Trocar `ano` por `t` só reescreve o mesmo polinômio com outros coeficientes,
-   então o S mínimo deveria ser igual nas duas versões. Além disso, o mínimo é
-   o menor valor que S pode assumir para aquele grau: coeficientes imprecisos
-   dão S maior ou igual a ele. Logo, entre dois valores diferentes, o menor é o
-   confiável (no grau {gu}, S(ano) = {res[gu][1]:.2f} > S(t) = {res[gu][3]:.2f}).
-
-2) Com um método estável (np.linalg.lstsq, que não forma X^T X) obtivemos
-   S = {res[primeiro][4]:.6f} no grau {primeiro} e S = {res[gu][4]:.6f} no grau {gu}, iguais aos obtidos
-   com `t`.
-
-3) O número de condição explica a causa. Com `ano`, cond(A) é {c_ano}.
-   Nessa situação a matriz é praticamente singular para o computador e a
-   solução das equações normais perde os dígitos significativos. Com `t`,
-   cond(A) é bem menor ({ordem(res[g1][2])} no grau {g1}, {ordem(res[primeiro][2])} no grau {primeiro}) e o resultado é confiável.
-
-Observação: cond(A) alto indica que o resultado PODE estar errado, não que
-esteja. Nos graus {l_iguais} o S ainda coincidiu com o correto; o erro só ficou
-visível no S a partir do grau {primeiro}. Acima de 1/eps os dígitos exatos de cond(A)
-também não são confiáveis (variam entre máquinas); vale só a ordem de grandeza.
-""")
-
-
-# (MP)
-# ... cole aqui ...
-# (MP)
-
-
-# (VIVI)
-# ... cole aqui ...
-# (VIVI)
-
+def s7_executa(ano, co2):
+    t = ano - 1959
+    
+    z = np.log(co2 - 280)
+    
+    X = np.vander(t, 2, increasing=True)
+    A_mat = X.T @ X
+    b_vec = X.T @ z
+    c_lin = np.linalg.solve(A_mat, b_vec)
+    
+    a0, k = c_lin[0], c_lin[1]
+    A = np.exp(a0)
+    
+    t_dobra = np.log(2) / k
+    
+    t_450 = np.log(170 / A) / k
+    ano_450 = 1959 + t_450
+    
+    C_pred = 280 + A * np.exp(k * t)
+    S_exp_ppm = np.sum((co2 - C_pred)**2)
+    
+    X_p = np.vander(t, 3, increasing=True)
+    c_p = np.linalg.solve(X_p.T @ X_p, X_p.T @ co2)
+    S_parabola = np.sum((co2 - X_p @ c_p)**2)
+    
+    print(f"PB.1 - A = {A:.6f}, k = {k:.6f}. Tempo de dobra do excesso: {t_dobra:.2f} anos")
+    print(f"PB.2 - Ano em que atinge 450 ppm: {ano_450:.2f} (ano {int(ano_450)})")
+    print(f"S (exponencial) = {S_exp_ppm:.6f} ppm²")
+    print(f"S (parábola)  = {S_parabola:.6f} ppm²")
 
 # Função principal
 if __name__ == "__main__":
     print(len(ano), "anos, de", int(ano[0]), "a", int(ano[-1]), "\n")
 
     s6_executa(ano, co2)
-    s6_p52(ano, co2)      
-
-    #Parte MP
-    #Parte VIVI
+    s6_p52(ano, co2)
+    s7_executa(ano, co2)   
