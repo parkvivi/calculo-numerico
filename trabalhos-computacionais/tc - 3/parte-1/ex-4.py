@@ -9,7 +9,7 @@ dados = [
     [875.0, 1.336]
 ]
 
-def diferencas_divididas_de_newton (x, y):
+def newton_diferencas_divididas (x, y):
     if len(x) != len(y):
         raise ValueError("x e y precisam ter as mesmas dimensões")
 
@@ -44,7 +44,7 @@ def ex4():
     [x.append(dados[i][0]) for i in range(len(dados))]
     [y.append(dados[i][1]) for i in range(len(dados))]
 
-    coeficientes = diferencas_divididas_de_newton (x, y)
+    coeficientes = newton_diferencas_divididas (x, y)
     print("Coeficientes do Polinômio Interpolador:", coeficientes)
 
     alvos = [
