@@ -1,11 +1,12 @@
 import numpy as np
 
-dados = [[1.2, 2.3], [3.0, 3.3], [4.5, 5.6], [5.6, 15.4], [6.9, 38.2], [8.1, 59.1]]
+dados_ex5 = [[1.2, 2.3], [3.0, 3.3], [4.5, 5.6], [5.6, 15.4], [6.9, 38.2], [8.1, 59.1]]
+dados_ex6 = [[1.0, 0.1], [2.3, 1.5], [3.8, 7.4], [4.9, 15.2], [6.1, 26.2], [7.2, 27.9]]
 
 def resolve_sistema(A, b):
     return np.linalg.solve(A, b)
 
-def ex5(x, y):
+def polinomio_2ograu(x, y):
     if len(x) != len(y):
         raise ValueError("x e y precisam ter as mesmas dimensões")
 
@@ -38,10 +39,33 @@ def ex5(x, y):
 
     coeficientes = resolve_sistema(A, b)
 
-    print("[a, b, c, d] = ", coeficientes)
+    return coeficientes
+
+def avalia_ponto(coeficientes, x):
+    grau = len(coeficientes) - 1
+    resultado = 0
+
+    for i in range(grau + 1):
+        resultado = resultado + coeficientes[grau - i]*(x**i)
+
+    print(f"f({x}) = {resultado}")
+
+def ex5():
+    x = [val[0] for val in dados_ex5]
+    y = [val[1] for val in dados_ex5]
+    coeficientes = polinomio_2ograu(x, y)
+    print("EXERCÍCIO 5: [a, b, c] = ", coeficientes)
+
+    x_alvo = 6.0
+    avalia_ponto(coeficientes, x_alvo)
+
+def ex6():
+    x = [val[0] for val in dados_ex6]
+    y = [val[1] for val in dados_ex6]
+    coeficientes = polinomio_2ograu(x, y)
+    print("EXERCÍCIO 6: [a, b, c] = ", coeficientes)
+
 
 if __name__ == "__main__":
-    x = [val[0] for val in dados]
-    y = [val[1] for val in dados]
-
-    ex5(x, y)
+    ex5()
+    ex6()
