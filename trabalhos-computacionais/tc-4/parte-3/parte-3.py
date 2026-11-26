@@ -27,7 +27,7 @@ def le_dados(arquivo):
 
 
 def gauss_pivoteamento(A, b):
-    """TODO: eliminacao de Gauss com pivotamento parcial + substituicao regressiva."""
+    """Eliminacao de Gauss com pivotamento parcial + substituicao regressiva."""
     M = np.array(A, dtype=float)
     rhs = np.array(b, dtype=float)
     n = len(rhs)
@@ -50,6 +50,60 @@ def gauss_pivoteamento(A, b):
         x[i] = (rhs[i] - soma) / M[i, i]
 
     return x
+
+
+def newton(f, df, x0, eps=1e-8, imprimir_historico=False, max_iter=200):
+    """
+    Determina a raiz de f(x) = 0 pelo Metodo de Newton-Raphson.
+    Retorna uma tupla: (raiz, historico)
+    """
+    x = x0
+    fx = f(x)
+
+    if imprimir_historico == True:
+        print("Histórico do Método de Newton:")
+
+    for k in range(1, max_iter + 1):
+        dfx = df(x)
+
+        if dfx == 0:
+            raise ValueError(f"Iteracao {k}: derivada nula em x = {x}.")
+
+        xn = x - fx / dfx
+        fxn = f(xn)
+        erro = abs(xn - x)
+
+        convergiu = (erro < eps) or (abs(fxn) < eps)
+
+        if imprimir_historico == True:
+            print({"k": k, "x": float(xn), "fx": float(fxn), "erro": float(erro), "convergiu": convergiu})
+
+        if convergiu:
+            return xn, k
+
+        x, fx = xn, fxn
+
+    print("Aviso: max_iter atingido no Newton sem convergencia completa.")
+    return x, k
+
+
+def s_chapeu(t, a):
+    return a[0] + a[1] * np.cos(OMEGA * t) + a[2] * np.sin(OMEGA * t)
+
+
+def ds_chapeu(t, a):
+    return -a[1] * OMEGA * np.sin(OMEGA * t) + a[2] * OMEGA * np.cos(OMEGA * t)
+
+
+def g(t, a, b):
+    y_chapeu = s_chapeu(t, a) * np.exp(b[0] + b[1] * (t - T0))
+    return y_chapeu - L
+
+
+def dg(t, a, b):
+    exp_termo = np.exp(b[0] + b[1] * (t - T0))
+    return (ds_chapeu(t, a) + b[1] * s_chapeu(t, a)) * exp_termo
+
 
 if __name__ == "__main__":
     t, y, tg, n, k = le_dados("aedes_dados.csv")
@@ -103,11 +157,11 @@ if __name__ == "__main__":
     print(f"t_pico = {t_pico} semanas")
 
     # gráfico dados e s_chapeu x tempo
-    s_chapeu = a[0] + a[1] * np.cos(OMEGA * t) + a[2] * np.sin(OMEGA * t)
+    s_chapeu_dados = s_chapeu(t, a)
 
     fig, ax = plt.subplots(figsize=(9, 4.5))
     ax.plot(t, y, "o", color="tab:blue", markersize=4, label="Dados observados (IMO)")
-    ax.plot(t, s_chapeu, "-", color="tab:red", linewidth=2, label="Modelo sazonal $\hat{s}(t)$")
+    ax.plot(t, s_chapeu_dados, "-", color="tab:red", linewidth=2, label="Modelo sazonal $\hat{s}(t)$")
     ax.axvline(T0, linestyle="--", color="gray", label="Início da soltura ($t_0$)")
     ax.set_xlabel("Semana")
     ax.set_ylabel("IMO (ovos/armadilha)")
@@ -118,7 +172,7 @@ if __name__ == "__main__":
 
     # Questao 2:
     # ajuste de z(t) = b0 + b1*t por mmq
-    z = np.log(np.divide(y, s_chapeu))
+    z = np.log(np.divide(y, s_chapeu_dados))
 
     X_2 = []
     for semana in t:
@@ -143,5 +197,32 @@ if __name__ == "__main__":
 
     print(f"Lambda: {lamb} por semana")
     print(f"Meia-vida: {meia_vida} semanas")
+
+    # raizes de g(t)
+    semanas_int = np.arange(T0, 401)
+    valores_g = g(semanas_int, a, b)
+
+    intervalos = []
+    for i in range(len(semanas_int) - 1):
+        if valores_g[i] * valores_g[i + 1] <= 0:
+            intervalos.append((semanas_int[i], semanas_int[i + 1]))
+
+    raizes = []
+    for t_esq, t_dir in intervalos:
+        chute = 0.5 * (t_esq + t_dir)
+        raiz, n_iter = newton(lambda t_val: g(t_val, a, b), lambda t_val: dg(t_val, a, b), chute, 1e-10)
+        raizes.append((raiz, n_iter))
+
+    print("Raizes de g(t) / Número de Iterações")
+    print(raizes)
+
+    # t_env
+    A = math.sqrt(a[1]**2 + a[2]**2)
+    t_env = T0 + ((math.log(L / (a[0] + A)) - b[0]) / b[1])
+
+    print(f"t_env = {t_env}")
+
+    # método de Newton com chute inicial = T0
+    newton(lambda t_val: g(t_val, a, b), lambda t_val: dg(t_val, a, b), T0, 1e-10, True)
 
     # Questao 3: TODO
