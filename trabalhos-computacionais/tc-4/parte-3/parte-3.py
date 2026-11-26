@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 T0 = 70            # semana de inicio da soltura
 OMEGA = 2 * np.pi / 52
 L = 5.0            # limiar de baixo risco (ovos por armadilha)
-
+L_1 = 4.0
+L_2 = 6.0
 
 def le_dados(arquivo):
     """Devolve (sem, imo, sem_gene, n, k). Semanas sem coleta NAO entram em sem/imo."""
@@ -95,9 +96,9 @@ def ds_chapeu(t, a):
     return -a[1] * OMEGA * np.sin(OMEGA * t) + a[2] * OMEGA * np.cos(OMEGA * t)
 
 
-def g(t, a, b):
+def g(t, a, b, L_X):
     y_chapeu = s_chapeu(t, a) * np.exp(b[0] + b[1] * (t - T0))
-    return y_chapeu - L
+    return y_chapeu - L_X
 
 
 def dg(t, a, b):
@@ -200,7 +201,7 @@ if __name__ == "__main__":
 
     # raizes de g(t)
     semanas_int = np.arange(T0, 401)
-    valores_g = g(semanas_int, a, b)
+    valores_g = g(semanas_int, a, b, L)
 
     intervalos = []
     for i in range(len(semanas_int) - 1):
@@ -210,10 +211,10 @@ if __name__ == "__main__":
     raizes = []
     for t_esq, t_dir in intervalos:
         chute = 0.5 * (t_esq + t_dir)
-        raiz, n_iter = newton(lambda t_val: g(t_val, a, b), lambda t_val: dg(t_val, a, b), chute, 1e-10)
+        raiz, n_iter = newton(lambda t_val: g(t_val, a, b, L), lambda t_val: dg(t_val, a, b), chute, 1e-10)
         raizes.append((raiz, n_iter))
 
-    print("Raizes de g(t) / Número de Iterações")
+    print(f"Raizes de g(t) / Número de Iterações [L = {L}]")
     print(raizes)
 
     # t_env
@@ -223,6 +224,89 @@ if __name__ == "__main__":
     print(f"t_env = {t_env}")
 
     # método de Newton com chute inicial = T0
-    newton(lambda t_val: g(t_val, a, b), lambda t_val: dg(t_val, a, b), T0, 1e-10, True)
+    newton(lambda t_val: g(t_val, a, b, L), lambda t_val: dg(t_val, a, b), T0, 1e-10, True)
 
-    # Questao 3: TODO
+    # Questao 3:
+    # estimação da fração de ovos com gene por amostra
+    p_chapeu = []
+    for i in range(tg.size):
+        p_chapeu.append((k[i] + 0.5) / (n[i] + 1))
+
+    p_chapeu = np.array(p_chapeu)
+
+    # ajuste da reta
+    X_3 = []
+    for i in range(tg.size):
+        X_3.append([1, tg[i]])
+
+    X_3 = np.array(X_3)
+    y_3 = np.log(p_chapeu / (1 - p_chapeu))
+
+    A_3 = X_3.T @ X_3
+    b_3 = X_3.T @ y_3
+
+    c = gauss_pivoteamento(A_3, b_3)
+
+    print(f"Coeficientes c (Pivoteamento de Gauss): {c}")
+
+    r = c[1]
+    t50 = -c[0] / c[1]
+    
+    print(f"r = {r}")
+    print(f"t50 = {t50}")
+
+    # grafico
+    p_curva = 1 / (1 + np.exp(-r * (tg - t50)))
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    ax.plot(tg, p_chapeu, "o", color="tab:green", label=r"Amostras ajustadas ($\hat{p}$)")
+    ax.plot(tg, p_curva, "-", color="tab:blue", linewidth=2, label="Logística ajustada $p(t)$")
+    ax.axhline(0.5, linestyle="--", color="gray", alpha=0.6)
+    ax.axvline(t50, linestyle="--", color="gray", alpha=0.6, label=f"$t_{{50}} = {t50:.2f}$ sem")
+    ax.set_xlabel("Semana")
+    ax.set_ylabel("Fração de ovos com o gene")
+    ax.set_ylim(-0.05, 1.05)
+    ax.legend()
+    plt.title("Ex. 3c: Fração de ovos com gene pelo tempo")
+    plt.tight_layout()
+    plt.show()
+
+    # cálculo de t95
+    t95 = t50 + (math.log(19) / r)
+
+    print(f"t95 = {t95}")
+
+    # Questão 4:
+    # L = 4.0
+    valores_g_1 = g(semanas_int, a, b, L_1)
+
+    intervalos_1 = []
+    for i in range(len(semanas_int) - 1):
+        if valores_g_1[i] * valores_g_1[i + 1] <= 0:
+            intervalos_1.append((semanas_int[i], semanas_int[i + 1]))
+
+    raizes_1 = []
+    for t_esq, t_dir in intervalos_1:
+        chute = 0.5 * (t_esq + t_dir)
+        raiz, n_iter = newton(lambda t_val: g(t_val, a, b, L_1), lambda t_val: dg(t_val, a, b), chute, 1e-10)
+        raizes_1.append((raiz, n_iter))
+
+    print(f"Raizes de g(t) / Número de Iterações [L = {L_1}]")
+    print(raizes_1)
+
+    # L = 6.0
+    valores_g_2 = g(semanas_int, a, b, L_2)
+
+    intervalos_2 = []
+    for i in range(len(semanas_int) - 1):
+        if valores_g_2[i] * valores_g_2[i + 1] <= 0:
+            intervalos_2.append((semanas_int[i], semanas_int[i + 1]))
+
+    raizes_2 = []
+    for t_esq, t_dir in intervalos:
+        chute = 0.5 * (t_esq + t_dir)
+        raiz, n_iter = newton(lambda t_val: g(t_val, a, b, L_2), lambda t_val: dg(t_val, a, b), chute, 1e-10)
+        raizes_2.append((raiz, n_iter))
+
+    print(f"Raizes de g(t) / Número de Iterações [L = {L_2}]")
+    print(raizes_2)
