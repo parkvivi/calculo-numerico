@@ -120,6 +120,8 @@ if __name__ == "__main__":
     plt.tight_layout(); plt.show()
 
     # Questao 1:
+    print("\nQUESTÃO 1")
+
     # montagem da matriz X
     X_1 = []
     for semana in t:
@@ -143,6 +145,10 @@ if __name__ == "__main__":
     print(f"Coeficientes a (Pivoteamento de Gauss): {a}")
     print(f"Coeficientes a (np.linalg.lstsq): {a_lstsq}")
 
+    print(f"a0 = {a[0]}")
+    print(f"a1 = {a[1]}")
+    print(f"a2 = {a[2]}")
+
     dif = np.max(np.abs(a - a_lstsq))
 
     print(f"Diferença Máxima entre os Coeficientes: {dif}")
@@ -152,6 +158,9 @@ if __name__ == "__main__":
     S = np.sum(residuos**2)
 
     print(f"S = {S}")
+
+    A = math.sqrt(a[1]**2 + a[2]**2)
+    print(f"A = {A}")
 
     # t pico
     t_pico = math.atan2(a[2], a[1]) / OMEGA
@@ -172,6 +181,8 @@ if __name__ == "__main__":
     plt.show()
 
     # Questao 2:
+    print("\nQUESTÃO 2")
+
     # ajuste de z(t) = b0 + b1*t por mmq
     z = np.log(np.divide(y, s_chapeu_dados))
 
@@ -196,8 +207,9 @@ if __name__ == "__main__":
     lamb = -b[1]
     meia_vida = math.log(2) / lamb
 
-    print(f"Lambda: {lamb} por semana")
-    print(f"Meia-vida: {meia_vida} semanas")
+    print(f"b0 = {b[0]}")
+    print(f"lambda = {lamb} por semana")
+    print(f"meia-vida = {meia_vida} semanas")
 
     # raizes de g(t)
     semanas_int = np.arange(T0, 401)
@@ -217,8 +229,30 @@ if __name__ == "__main__":
     print(f"Raizes de g(t) / Número de Iterações [L = {L}]")
     print(raizes)
 
+    for i, raiz in enumerate(raizes):
+        print(f"raiz_{i + 1}_g = {raiz[0]}")
+
+    print(f"primeira raiz = {raizes[0][0]}")
+    print(f"primeira \"para sempre\" = {raizes[-1][0]}")
+
+    # gráfico de g(t) com raízes marcadas
+    t_raizes = np.array([r[0] for r in raizes])
+
+    fig, ax = plt.subplots(figsize=(9, 4.5))
+    ax.plot(semanas_int, valores_g, "-", color="tab:red", linewidth=2, label="$g(t) = \hat{y}(t) - L$")
+    ax.axhline(0, linestyle="--", color="black", linewidth=1, label="$g(t) = 0$ (Limiar $L$)")
+    ax.axvline(T0, linestyle="--", color="gray", label="Início da soltura ($t_0$)")
+    ax.plot(t_raizes, np.zeros_like(t_raizes), "o", color="tab:blue", markersize=6, zorder=5, label="Raízes de $g(t)$")
+    ax.annotate(f"1ª raiz\n({t_raizes[0]:.2f})", xy=(t_raizes[0], 0), xytext=(t_raizes[0] + 2, 10), arrowprops=dict(arrowstyle="->"))
+    ax.annotate(f"Raiz \"para sempre\"\n({t_raizes[-1]:.2f})", xy=(t_raizes[-1], 0), xytext=(t_raizes[-1] + 2, 10), arrowprops=dict(arrowstyle="->"))
+    ax.set_xlabel("Semana")
+    ax.set_ylabel("$g(t)$ (ovos/armadilha)")
+    ax.legend()
+    plt.title(f"Ex. 2: Função $g(t)$ e suas raízes ($L = {L}$)")
+    plt.tight_layout()
+    plt.show()
+
     # t_env
-    A = math.sqrt(a[1]**2 + a[2]**2)
     t_env = T0 + ((math.log(L / (a[0] + A)) - b[0]) / b[1])
 
     print(f"t_env = {t_env}")
@@ -227,6 +261,8 @@ if __name__ == "__main__":
     newton(lambda t_val: g(t_val, a, b, L), lambda t_val: dg(t_val, a, b), T0, 1e-10, True)
 
     # Questao 3:
+    print("\nQUESTÃO 3")
+
     # estimação da fração de ovos com gene por amostra
     p_chapeu = []
     for i in range(tg.size):
@@ -277,6 +313,8 @@ if __name__ == "__main__":
     print(f"t95 = {t95}")
 
     # Questão 4:
+    print("\nQUESTÃO 4")
+
     # L = 4.0
     valores_g_1 = g(semanas_int, a, b, L_1)
 
@@ -294,6 +332,7 @@ if __name__ == "__main__":
     print(f"Raizes de g(t) / Número de Iterações [L = {L_1}]")
     print(raizes_1)
 
+    print(f"raiz \"para sempre\" (L = {L_1}) = {raizes_1[-1][0]}")
     # L = 6.0
     valores_g_2 = g(semanas_int, a, b, L_2)
 
@@ -310,3 +349,5 @@ if __name__ == "__main__":
 
     print(f"Raizes de g(t) / Número de Iterações [L = {L_2}]")
     print(raizes_2)
+
+    print(f"raiz \"para sempre\" (L = {L_2}) = {raizes_2[-1][0]}")
