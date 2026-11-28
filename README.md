@@ -19,8 +19,7 @@ calculo-numerico/
 ├── projeto-final                   
 |       ├── src/                    # implementação dos métodos
 |       ├── experimentos/           # pipeline de execução
-|       ├── dados/                  # dados (arquivos de áudio gerados)
-|       └── relatorio/              # relatório
+|       └── dados/                  # dados (arquivos de áudio gerados)
 ├── .gitignore 
 └── README.md                       # documentação do repositório
 ```
